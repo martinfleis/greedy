@@ -1,3 +1,22 @@
+"""
+greedy - Greedy (topological) coloring for GeoPandas
+
+Copyright (C) 2020  Martin Fleischmann, Nyall Dawson
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+"""
+
 import operator
 import sys
 from collections import defaultdict
@@ -11,9 +30,14 @@ STRATEGIES = nx.algorithms.coloring.greedy_coloring.STRATEGIES.keys()
 
 def balanced(features, sw, balance="count", min_colors=4):
     """
-    get balanced colours - ported from QGIS, enhanced.
+    Strategy to color features in a way which is visually balanced.
 
-    Original code: (C) 2017, Nyall Dawson
+    Algorithm ported from QGIS to be used with GeoDataFrames and libpysal weights objects.
+
+    Original algorithm:
+    Date                 : February 2017
+    Copyright            : (C) 2017 by Nyall Dawson
+    Email                : nyall dot dawson at gmail dot com
 
     add docstring
     """
