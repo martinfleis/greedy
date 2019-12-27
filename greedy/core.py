@@ -1,13 +1,9 @@
-import geopandas as gpd
 import libpysal
 import networkx as nx
 import pandas as pd
 import operator
 import sys
 from collections import defaultdict
-
-world = gpd.read_file(gpd.datasets.get_path("naturalearth_lowres"))
-
 
 netx_strategies = nx.algorithms.coloring.greedy_coloring.STRATEGIES.keys()
 
@@ -22,7 +18,7 @@ def balanced(features, sw, balance="count", min_colors=4):
     """
     feature_colors = {}
     # start with minimum number of colors in pool
-    color_pool = set(range(1, min_colors + 1))
+    color_pool = set(range(min_colors))
 
     # calculate count of neighbours
     neighbour_count = sw.cardinalities
@@ -140,7 +136,8 @@ def geos_sw(features, min_distance=0, silence_warnings=False):
     sindex = features.sindex
 
     if min_distance > 0:
-        features["geometry"] = features.geometry.buffer(min_distance, 5 / 2)
+        features = features.copy()
+        features["geometry"] = features.geometry.buffer(min_distance / 2, 5)
 
     for i, (ix, f) in enumerate(features.iterrows()):
 
@@ -168,8 +165,38 @@ def greedy(
     """
     main greedy function
     add docstring
+
+    Parameters
+    ----------
+    gdf : GeoDataFrame
+        GeoDataFrame
+    strategy : str (default 'balanced')
+        coloring strategy
+
+        explain
+    balance : str (default 'count')
+        if strategy is 'balanced', determine the method of color balancing
+
+        explan
+    min_colors: int (default 4)
+        if strategy is 'balanced', define the minimal number of colors to be used
+
+    sw : 'queen', 'rook' or libpysal.weights.W
+        spatial weights
+
+    min_distance : float
+        minimal distance between colors
+
+        explain slower algorithm
+
+    silence_warnings : bool (default True)
+        silence lilbpysal warnings (if min_distance is set)
+
+    Examples
+    --------
+    >>>
     """
-    if min_distance:
+    if min_distance is not None:
         sw = geos_sw(gdf, min_distance=min_distance, silence_warnings=silence_warnings)
 
     if not isinstance(sw, libpysal.weights.W):
