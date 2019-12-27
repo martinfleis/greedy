@@ -39,7 +39,21 @@ def balanced(features, sw, balance="count", min_colors=4):
     Copyright            : (C) 2017 by Nyall Dawson
     Email                : nyall dot dawson at gmail dot com
 
-    add docstring
+    Parameters
+    ----------
+    features : GeoDataFrame
+        GeoDataFrame
+    sw : libpysal.weights.W
+        spatial weights object denoting adjacency of features
+    balance : str
+        the method of color balancing
+    min_colors : int
+        the minimal number of colors to be used
+
+    Returns
+    -------
+    feature_colors : dict
+        dictionary with assigned color codes
     """
     feature_colors = {}
     # start with minimum number of colors in pool
@@ -241,3 +255,5 @@ def greedy(
 
     else:
         raise ValueError("{} is not a valid strategy.".format(strategy))
+
+# CHECK BEHAVIOUR WITH DIFFERENT INDICES THAN CONSECUTIVE RANGE
