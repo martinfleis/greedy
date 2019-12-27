@@ -1,11 +1,12 @@
-import libpysal
-import networkx as nx
-import pandas as pd
 import operator
 import sys
 from collections import defaultdict
 
-netx_strategies = nx.algorithms.coloring.greedy_coloring.STRATEGIES.keys()
+import libpysal
+import networkx as nx
+import pandas as pd
+
+STRATEGIES = nx.algorithms.coloring.greedy_coloring.STRATEGIES.keys()
 
 
 def balanced(features, sw, balance="count", min_colors=4):
@@ -210,7 +211,7 @@ def greedy(
             balanced(gdf, sw, balance=balance, min_colors=min_colors), index=gdf.index
         )
 
-    elif strategy in netx_strategies:
+    elif strategy in STRATEGIES:
         color = nx.greedy_color(sw.to_networkx(), strategy=strategy)
         return pd.Series(color, index=gdf.index)
 
