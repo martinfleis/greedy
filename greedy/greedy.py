@@ -79,6 +79,7 @@ def balanced(features, sw, balance="count", min_colors=4):
     if balance == "centroid":
         features = features.copy()
         features.geometry = features.geometry.centroid
+        balance = "distance"
 
     for (feature_id, n) in sorted_by_count:
         # first work out which already assigned colors are adjacent to this feature
@@ -109,32 +110,6 @@ def balanced(features, sw, balance="count", min_colors=4):
                 ]
                 feature_color = sorted(areas, key=operator.itemgetter(1))[0][0]
                 color_areas[feature_color] += features.loc[feature_id].geometry.area
-            elif balance == "centroid":
-                min_distances = {c: sys.float_info.max for c in available_colors}
-                this_feature_centroid = features.loc[feature_id].geometry
-
-                # find features for all available colors
-                other_features = {
-                    f_id: c
-                    for (f_id, c) in feature_colors.items()
-                    if c in available_colors
-                }
-
-                # loop through these, and calculate the minimum distance from this feature to the nearest
-                # feature with each assigned color
-                for other_feature_id, c in other_features.items():
-
-                    other_centroid = features.loc[other_feature_id].geometry
-
-                    distance = this_feature_centroid.distance(other_centroid)
-                    if distance < min_distances[c]:
-                        min_distances[c] = distance
-
-                # choose color such that minimum distance is maximised! ie we want MAXIMAL separation between
-                # features with the same color
-                feature_color = sorted(
-                    min_distances, key=min_distances.__getitem__, reverse=True
-                )[0]
 
             elif balance == "distance":
                 min_distances = {c: sys.float_info.max for c in available_colors}

@@ -144,6 +144,16 @@ def test_sw():
     assert colors.value_counts().to_list() == [36, 36, 35, 35, 35]
 
 
+@pytest.mark.parametrize("pysal_geos", [None, 0])
+def test_index():
+    world["ten"] = world.index * 10
+    reindexed = world.set_index("ten")
+    colors = greedy(reindexed, sw=sw)
+    assert len(colors) == len(world)
+    assert set(colors) == set([0, 1, 2, 3, 4])
+    assert colors.value_counts().to_list() == [36, 36, 35, 35, 35]
+
+
 def test_min_distance():
     europe = world.loc[world.continent == "Europe"].to_crs(epsg=3035)
     colors = greedy(europe, min_distance=500000)
