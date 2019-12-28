@@ -104,10 +104,10 @@ def balanced(features, sw, balance="count", min_colors=4):
                     (c, v) for c, v in color_areas.items() if c in available_colors
                 ]
                 feature_color = sorted(areas, key=operator.itemgetter(1))[0][0]
-                color_areas[feature_color] += features.iloc[feature_id].geometry.area
+                color_areas[feature_color] += features.loc[feature_id].geometry.area
             elif balance == "centroid":
                 min_distances = {c: sys.float_info.max for c in available_colors}
-                this_feature_centroid = features.iloc[feature_id].geometry.centroid
+                this_feature_centroid = features.loc[feature_id].geometry.centroid
 
                 # find features for all available colors
                 other_features = {
@@ -120,7 +120,7 @@ def balanced(features, sw, balance="count", min_colors=4):
                 # feature with each assigned color
                 for other_feature_id, c in other_features.items():
 
-                    other_geometry = features.iloc[other_feature_id].geometry
+                    other_geometry = features.loc[other_feature_id].geometry
                     other_centroid = other_geometry.centroid
 
                     distance = this_feature_centroid.distance(other_centroid)
@@ -135,7 +135,7 @@ def balanced(features, sw, balance="count", min_colors=4):
 
             elif balance == "distance":
                 min_distances = {c: sys.float_info.max for c in available_colors}
-                this_feature = features.iloc[feature_id].geometry
+                this_feature = features.loc[feature_id].geometry
 
                 # find features for all available colors
                 other_features = {
@@ -148,7 +148,7 @@ def balanced(features, sw, balance="count", min_colors=4):
                 # feature with each assigned color
                 for other_feature_id, c in other_features.items():
 
-                    other_geometry = features.iloc[other_feature_id].geometry
+                    other_geometry = features.loc[other_feature_id].geometry
 
                     distance = this_feature.distance(other_geometry)
                     if distance < min_distances[c]:
@@ -172,11 +172,11 @@ def geos_sw(features, min_distance=0, silence_warnings=False):
     """
     neighbors = {}
 
-    sindex = features.sindex
-
     if min_distance > 0:
         features = features.copy()
         features["geometry"] = features.geometry.buffer(min_distance / 2, 5)
+
+    sindex = features.sindex
 
     for i, (ix, f) in enumerate(features.iterrows()):
 
@@ -240,20 +240,20 @@ def greedy(
 
     if not isinstance(sw, libpysal.weights.W):
         if sw == "queen":
-            sw = libpysal.weights.Queen.from_dataframe(gdf)
+            sw = libpysal.weights.Queen.from_dataframe(gdf, ids=gdf.index.to_list(), silence_warnings=silence_warnings)
         elif sw == "rook":
-            sw = libpysal.weights.Rook.from_dataframe(gdf)
+            sw = libpysal.weights.Rook.from_dataframe(gdf, ids=gdf.index.to_list(), silence_warnings=silence_warnings)
 
     if strategy == "balanced":
         return pd.Series(
-            balanced(gdf, sw, balance=balance, min_colors=min_colors), index=gdf.index
+            balanced(gdf, sw, balance=balance, min_colors=min_colors)
         )
 
     elif strategy in STRATEGIES:
         color = nx.greedy_color(sw.to_networkx(), strategy=strategy)
-        return pd.Series(color, index=gdf.index)
+        color = pd.Series(color).sort_index()
+        color.index = gdf.index
+        return color
 
     else:
         raise ValueError("{} is not a valid strategy.".format(strategy))
-
-# CHECK BEHAVIOUR WITH DIFFERENT INDICES THAN CONSECUTIVE RANGE

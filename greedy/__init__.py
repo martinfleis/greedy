@@ -1,4 +1,4 @@
-from .core import greedy, balanced, geos_sw
+from .greedy import greedy, balanced, geos_sw
 
 __author__ = "Martin Fleischmann"
 __author_email__ = "martin@martinfleischmann.net"
