@@ -18,7 +18,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import operator
-import sys
 
 import libpysal
 import networkx as nx
@@ -27,7 +26,7 @@ import pandas as pd
 STRATEGIES = nx.algorithms.coloring.greedy_coloring.STRATEGIES.keys()
 
 
-def balanced(features, sw, balance="count", min_colors=4):
+def _balanced(features, sw, balance="count", min_colors=4):
     """
     Strategy to color features in a way which is visually balanced.
 
@@ -94,7 +93,7 @@ def balanced(features, sw, balance="count", min_colors=4):
         if len(available_colors) == 0:
             # no existing colors available for this feature, so add new color to pool and repeat
             min_colors += 1
-            return balanced(features, sw, balance, min_colors)
+            return _balanced(features, sw, balance, min_colors)
         else:
             if balance == "count":
                 # choose least used available color
@@ -142,16 +141,33 @@ def balanced(features, sw, balance="count", min_colors=4):
     return feature_colors
 
 
-def geos_sw(features, min_distance=0, silence_warnings=False):
+def _geos_sw(features, tolerance=0, silence_warnings=False):
     """
-    generate SW based on intersections
-    add docstring
+    Generate libpysal spatial weights object based on intersections of features.
+
+    Intersecting features are denoted as neighbours. If tolerance > 0, all features
+    within the set tolerance are denoted as neighbours.
+
+
+    Parameters
+    ----------
+    features : GeoDataFrame
+        GeoDataFrame
+    tolerance : float (default 0)
+        minimal distance between colors
+    silence_warnings : bool (default True)
+        silence lilbpysal warnings (if min_distance is set)
+
+    Returns
+    -------
+    W : libpysal.weights.W
+        spatial weights object
     """
     neighbors = {}
 
-    if min_distance > 0:
+    if tolerance > 0:
         features = features.copy()
-        features["geometry"] = features.geometry.buffer(min_distance / 2, 5)
+        features["geometry"] = features.geometry.buffer(tolerance / 2, 5)
 
     sindex = features.sindex
 
@@ -176,47 +192,91 @@ def greedy(
     min_colors=4,
     sw="queen",
     min_distance=None,
-    silence_warnings=False,
+    silence_warnings=True,
     interchange=False,
 ):
     """
-    main greedy function
-    add docstring
+    Color GeoDataFrame using various strategies of greedy (topological) colouring.
+
+    Attempts to color a GeoDataFrame using as few colors as possible, where no
+    neighbours can have same color as the feature itself. Offers various strategies
+    ported from QGIS or implemented within networkX for greedy graph coloring.
+
+    ``greedy`` will return pandas.Series representing assinged color codes.
 
     Parameters
     ----------
     gdf : GeoDataFrame
         GeoDataFrame
     strategy : str (default 'balanced')
-        coloring strategy
+        Determine coloring strategy. Options are ``'balanced'`` for algorithm based on
+        QGIS Topological coloring. It is aiming for a visual balance, defined by the
+        balance parameter.
 
-        explain
+        Other options are those supported by networkx.greedy_color:
+
+        * ``'largest_first'``
+        * ``'random_sequential'``
+        * ``'smallest_last'``
+        * ``'independent_set'``
+        * ``'connected_sequential_bfs'``
+        * ``'connected_sequential_dfs'``
+        * ``'connected_sequential'`` (alias for the previous strategy)
+        * ``'saturation_largest_first'``
+        * ``'DSATUR'`` (alias for the previous strategy)
+
+        For details see
+        https://networkx.github.io/documentation/stable/reference/algorithms/generated/networkx.algorithms.coloring.greedy_color.html
+
     balance : str (default 'count')
-        if strategy is 'balanced', determine the method of color balancing
+        If strategy is ``'balanced'``, determine the method of color balancing.
 
-        explain
+        * ``'count'`` attempts to balance the number of features per each color.
+        * ``'area'`` attempts to balance the area covered by each color.
+        * ``'centroid'`` attempts to balance the distance between colors based on the distance between centroids.
+        * ``'distance'`` attempts to balance the distance between colors based on the distance between geometries. Slower than ``'centroid'``, but more precise.
+
+        ``'centroid'`` and ``'distance'`` are significantly slower than other especially
+        for larger GeoDataFrames.
+
+        Apart from ``'count'``, all require CRS to be projected (not in degrees) to ensure
+        metric values are correct.
+
     min_colors: int (default 4)
-        if strategy is 'balanced', define the minimal number of colors to be used
+        If strategy is ``'balanced'``, define the minimal number of colors to be used.
 
-    sw : 'queen', 'rook' or libpysal.weights.W
-        spatial weights
+    sw : 'queen', 'rook' or libpysal.weights.W (default 'queen')
+        If min_distance is None, one can pass ``'libpysal.weights.W'`` object denoting neighbors
+        or let greedy to generate one based on ``'queen'`` or ``'rook'`` contiguity.
 
     min_distance : float
-        minimal distance between colors
+        Set minimal distance between colors.
 
-        explain slower algorithm
+        If min_distance is not None, slower algorithm for generating spatial weghts is used
+        based on intersection between geometries. Min_distance is then used as a tolerance
+        of intersection.
 
     silence_warnings : bool (default True)
-        silence lilbpysal warnings (if min_distance is set)
+        Silence libpysal warnings when creating spatial weights.
 
     interchange : bool (defaul False)
+        Use the color interchange algorithm (applicable for networkx strategies)
+
+        For details see
+        https://networkx.github.io/documentation/stable/reference/algorithms/generated/networkx.algorithms.coloring.greedy_color.html
 
     Examples
     --------
-    >>>
+    >>> greedy(world)
+
+
+    Returns
+    -------
+    color : pd.Series
+        pandas.Series representing assinged color codes
     """
     if min_distance is not None:
-        sw = geos_sw(gdf, min_distance=min_distance, silence_warnings=silence_warnings)
+        sw = _geos_sw(gdf, tolerance=min_distance, silence_warnings=silence_warnings)
 
     if not isinstance(sw, libpysal.weights.W):
         if sw == "queen":
@@ -229,7 +289,7 @@ def greedy(
             )
 
     if strategy == "balanced":
-        return pd.Series(balanced(gdf, sw, balance=balance, min_colors=min_colors))
+        return pd.Series(_balanced(gdf, sw, balance=balance, min_colors=min_colors))
 
     elif strategy in STRATEGIES:
         color = nx.greedy_color(
