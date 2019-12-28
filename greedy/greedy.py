@@ -216,7 +216,7 @@ def greedy(
     balance : str (default 'count')
         if strategy is 'balanced', determine the method of color balancing
 
-        explan
+        explain
     min_colors: int (default 4)
         if strategy is 'balanced', define the minimal number of colors to be used
 
@@ -240,14 +240,16 @@ def greedy(
 
     if not isinstance(sw, libpysal.weights.W):
         if sw == "queen":
-            sw = libpysal.weights.Queen.from_dataframe(gdf, ids=gdf.index.to_list(), silence_warnings=silence_warnings)
+            sw = libpysal.weights.Queen.from_dataframe(
+                gdf, ids=gdf.index.to_list(), silence_warnings=silence_warnings
+            )
         elif sw == "rook":
-            sw = libpysal.weights.Rook.from_dataframe(gdf, ids=gdf.index.to_list(), silence_warnings=silence_warnings)
+            sw = libpysal.weights.Rook.from_dataframe(
+                gdf, ids=gdf.index.to_list(), silence_warnings=silence_warnings
+            )
 
     if strategy == "balanced":
-        return pd.Series(
-            balanced(gdf, sw, balance=balance, min_colors=min_colors)
-        )
+        return pd.Series(balanced(gdf, sw, balance=balance, min_colors=min_colors))
 
     elif strategy in STRATEGIES:
         color = nx.greedy_color(sw.to_networkx(), strategy=strategy)
