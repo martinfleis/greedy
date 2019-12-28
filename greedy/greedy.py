@@ -200,6 +200,7 @@ def greedy(
     sw="queen",
     min_distance=None,
     silence_warnings=False,
+    interchange=False,
 ):
     """
     main greedy function
@@ -231,6 +232,8 @@ def greedy(
     silence_warnings : bool (default True)
         silence lilbpysal warnings (if min_distance is set)
 
+    interchange : bool (defaul False)
+
     Examples
     --------
     >>>
@@ -252,7 +255,9 @@ def greedy(
         return pd.Series(balanced(gdf, sw, balance=balance, min_colors=min_colors))
 
     elif strategy in STRATEGIES:
-        color = nx.greedy_color(sw.to_networkx(), strategy=strategy)
+        color = nx.greedy_color(
+            sw.to_networkx(), strategy=strategy, interchange=interchange
+        )
         color = pd.Series(color).sort_index()
         color.index = gdf.index
         return color

@@ -1,0 +1,11 @@
+name: test
+channels:
+  - conda-forge
+dependencies:
+  - python
+  - geopandas
+  - libpysal
+  - networkx
+  - pytest
+  - pytest-cov
+  - codecov
