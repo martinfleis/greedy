@@ -19,7 +19,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import operator
 import sys
-from collections import defaultdict
 
 import libpysal
 import networkx as nx
@@ -70,8 +69,8 @@ def balanced(features, sw, balance="count", min_colors=4):
         )
     ]
     # counts for each color already assigned
-    color_counts = defaultdict(int)
-    color_areas = defaultdict(float)
+    color_counts = {}
+    color_areas = {}
     for c in color_pool:
         color_counts[c] = 0
         color_areas[c] = 0
@@ -112,7 +111,7 @@ def balanced(features, sw, balance="count", min_colors=4):
                 color_areas[feature_color] += features.loc[feature_id].geometry.area
 
             elif balance == "distance":
-                min_distances = {c: sys.float_info.max for c in available_colors}
+                min_distances = {c: float("inf") for c in available_colors}
                 this_feature = features.loc[feature_id].geometry
 
                 # find features for all available colors

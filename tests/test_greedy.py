@@ -145,10 +145,10 @@ def test_sw():
 
 
 @pytest.mark.parametrize("pysal_geos", [None, 0])
-def test_index():
+def test_index(pysal_geos):
     world["ten"] = world.index * 10
     reindexed = world.set_index("ten")
-    colors = greedy(reindexed, sw=sw)
+    colors = greedy(reindexed, min_distance=pysal_geos)
     assert len(colors) == len(world)
     assert set(colors) == set([0, 1, 2, 3, 4])
     assert colors.value_counts().to_list() == [36, 36, 35, 35, 35]
