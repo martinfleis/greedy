@@ -76,6 +76,10 @@ def balanced(features, sw, balance="count", min_colors=4):
         color_counts[c] = 0
         color_areas[c] = 0
 
+    if balance == "centroid":
+        features = features.copy()
+        features.geometry = features.geometry.centroid
+
     for (feature_id, n) in sorted_by_count:
         # first work out which already assigned colors are adjacent to this feature
         adjacent_colors = set()
@@ -107,7 +111,7 @@ def balanced(features, sw, balance="count", min_colors=4):
                 color_areas[feature_color] += features.loc[feature_id].geometry.area
             elif balance == "centroid":
                 min_distances = {c: sys.float_info.max for c in available_colors}
-                this_feature_centroid = features.loc[feature_id].geometry.centroid
+                this_feature_centroid = features.loc[feature_id].geometry
 
                 # find features for all available colors
                 other_features = {
@@ -120,8 +124,7 @@ def balanced(features, sw, balance="count", min_colors=4):
                 # feature with each assigned color
                 for other_feature_id, c in other_features.items():
 
-                    other_geometry = features.loc[other_feature_id].geometry
-                    other_centroid = other_geometry.centroid
+                    other_centroid = features.loc[other_feature_id].geometry
 
                     distance = this_feature_centroid.distance(other_centroid)
                     if distance < min_distances[c]:
