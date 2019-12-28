@@ -1,0 +1,250 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>greedy API reference &#8212; greedy 1.0.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Comparison of strategies" href="strategies.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="greedy-api-reference">
+<span id="reference"></span><h1>greedy API reference<a class="headerlink" href="#greedy-api-reference" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-greedy">
+<span id="greedy"></span><h2>greedy<a class="headerlink" href="#module-greedy" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="greedy.greedy">
+<code class="sig-prename descclassname">greedy.</code><code class="sig-name descname">greedy</code><span class="sig-paren">(</span><em class="sig-param">gdf</em>, <em class="sig-param">strategy='balanced'</em>, <em class="sig-param">balance='count'</em>, <em class="sig-param">min_colors=4</em>, <em class="sig-param">sw='queen'</em>, <em class="sig-param">min_distance=None</em>, <em class="sig-param">silence_warnings=True</em>, <em class="sig-param">interchange=False</em><span class="sig-paren">)</span><a class="headerlink" href="#greedy.greedy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Color GeoDataFrame using various strategies of greedy (topological) colouring.</p>
+<p>Attempts to color a GeoDataFrame using as few colors as possible, where no
+neighbours can have same color as the feature itself. Offers various strategies
+ported from QGIS or implemented within networkX for greedy graph coloring.</p>
+<p><code class="docutils literal notranslate"><span class="pre">greedy</span></code> will return pandas.Series representing assinged color codes.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>gdf</strong><span class="classifier">GeoDataFrame</span></dt><dd><p>GeoDataFrame</p>
+</dd>
+<dt><strong>strategy</strong><span class="classifier">str (default ‘balanced’)</span></dt><dd><p>Determine coloring strategy. Options are <code class="docutils literal notranslate"><span class="pre">'balanced'</span></code> for algorithm based on
+QGIS Topological coloring. It is aiming for a visual balance, defined by the
+balance parameter.</p>
+<p>Other options are those supported by networkx.greedy_color:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">'largest_first'</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'random_sequential'</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'smallest_last'</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'independent_set'</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'connected_sequential_bfs'</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'connected_sequential_dfs'</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'connected_sequential'</span></code> (alias for the previous strategy)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'saturation_largest_first'</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'DSATUR'</span></code> (alias for the previous strategy)</p></li>
+</ul>
+<p>For details see
+<a class="reference external" href="https://networkx.github.io/documentation/stable/reference/algorithms/generated/networkx.algorithms.coloring.greedy_color.html">https://networkx.github.io/documentation/stable/reference/algorithms/generated/networkx.algorithms.coloring.greedy_color.html</a></p>
+</dd>
+<dt><strong>balance</strong><span class="classifier">str (default ‘count’)</span></dt><dd><p>If strategy is <code class="docutils literal notranslate"><span class="pre">'balanced'</span></code>, determine the method of color balancing.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">'count'</span></code> attempts to balance the number of features per each color.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'area'</span></code> attempts to balance the area covered by each color.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'centroid'</span></code> attempts to balance the distance between colors based on the distance between centroids.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'distance'</span></code> attempts to balance the distance between colors based on the distance between geometries. Slower than <code class="docutils literal notranslate"><span class="pre">'centroid'</span></code>, but more precise.</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">'centroid'</span></code> and <code class="docutils literal notranslate"><span class="pre">'distance'</span></code> are significantly slower than other especially
+for larger GeoDataFrames.</p>
+<p>Apart from <code class="docutils literal notranslate"><span class="pre">'count'</span></code>, all require CRS to be projected (not in degrees) to ensure
+metric values are correct.</p>
+</dd>
+<dt><strong>min_colors: int (default 4)</strong></dt><dd><p>If strategy is <code class="docutils literal notranslate"><span class="pre">'balanced'</span></code>, define the minimal number of colors to be used.</p>
+</dd>
+<dt><strong>sw</strong><span class="classifier">‘queen’, ‘rook’ or libpysal.weights.W (default ‘queen’)</span></dt><dd><p>If min_distance is None, one can pass <code class="docutils literal notranslate"><span class="pre">'libpysal.weights.W'</span></code> object denoting neighbors
+or let greedy to generate one based on <code class="docutils literal notranslate"><span class="pre">'queen'</span></code> or <code class="docutils literal notranslate"><span class="pre">'rook'</span></code> contiguity.</p>
+</dd>
+<dt><strong>min_distance</strong><span class="classifier">float</span></dt><dd><p>Set minimal distance between colors.</p>
+<p>If min_distance is not None, slower algorithm for generating spatial weghts is used
+based on intersection between geometries. Min_distance is then used as a tolerance
+of intersection.</p>
+</dd>
+<dt><strong>silence_warnings</strong><span class="classifier">bool (default True)</span></dt><dd><p>Silence libpysal warnings when creating spatial weights.</p>
+</dd>
+<dt><strong>interchange</strong><span class="classifier">bool (defaul False)</span></dt><dd><p>Use the color interchange algorithm (applicable for networkx strategies)</p>
+<p>For details see
+<a class="reference external" href="https://networkx.github.io/documentation/stable/reference/algorithms/generated/networkx.algorithms.coloring.greedy_color.html">https://networkx.github.io/documentation/stable/reference/algorithms/generated/networkx.algorithms.coloring.greedy_color.html</a></p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>color</strong><span class="classifier">pd.Series</span></dt><dd><p>pandas.Series representing assinged color codes</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">greedy</span><span class="p">(</span><span class="n">world</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="helper-functions">
+<h2>Helper functions<a class="headerlink" href="#helper-functions" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="greedy.greedy._balanced">
+<code class="sig-prename descclassname">greedy.greedy.</code><code class="sig-name descname">_balanced</code><span class="sig-paren">(</span><em class="sig-param">features</em>, <em class="sig-param">sw</em>, <em class="sig-param">balance='count'</em>, <em class="sig-param">min_colors=4</em><span class="sig-paren">)</span><a class="headerlink" href="#greedy.greedy._balanced" title="Permalink to this definition">¶</a></dt>
+<dd><p>Strategy to color features in a way which is visually balanced.</p>
+<p>Algorithm ported from QGIS to be used with GeoDataFrames and libpysal weights objects.</p>
+<p>Original algorithm:
+Date                 : February 2017
+Copyright            : (C) 2017 by Nyall Dawson
+Email                : nyall dot dawson at gmail dot com</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>features</strong><span class="classifier">GeoDataFrame</span></dt><dd><p>GeoDataFrame</p>
+</dd>
+<dt><strong>sw</strong><span class="classifier">libpysal.weights.W</span></dt><dd><p>spatial weights object denoting adjacency of features</p>
+</dd>
+<dt><strong>balance</strong><span class="classifier">str</span></dt><dd><p>the method of color balancing</p>
+</dd>
+<dt><strong>min_colors</strong><span class="classifier">int</span></dt><dd><p>the minimal number of colors to be used</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>feature_colors</strong><span class="classifier">dict</span></dt><dd><p>dictionary with assigned color codes</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="greedy.greedy._geos_sw">
+<code class="sig-prename descclassname">greedy.greedy.</code><code class="sig-name descname">_geos_sw</code><span class="sig-paren">(</span><em class="sig-param">features</em>, <em class="sig-param">tolerance=0</em>, <em class="sig-param">silence_warnings=False</em><span class="sig-paren">)</span><a class="headerlink" href="#greedy.greedy._geos_sw" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate libpysal spatial weights object based on intersections of features.</p>
+<p>Intersecting features are denoted as neighbours. If tolerance &gt; 0, all features
+within the set tolerance are denoted as neighbours.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>features</strong><span class="classifier">GeoDataFrame</span></dt><dd><p>GeoDataFrame</p>
+</dd>
+<dt><strong>tolerance</strong><span class="classifier">float (default 0)</span></dt><dd><p>minimal distance between colors</p>
+</dd>
+<dt><strong>silence_warnings</strong><span class="classifier">bool (default True)</span></dt><dd><p>silence lilbpysal warnings (if min_distance is set)</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>W</strong><span class="classifier">libpysal.weights.W</span></dt><dd><p>spatial weights object</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">greedy</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="strategies.html">Comparison of strategies</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">greedy API reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-greedy">greedy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#helper-functions">Helper functions</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="strategies.html" title="previous chapter">Comparison of strategies</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Martin Fleischmann.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/api.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

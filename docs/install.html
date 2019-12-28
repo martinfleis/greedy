@@ -1,0 +1,205 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Install &#8212; greedy 1.0.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Getting started" href="guide.html" />
+    <link rel="prev" title="Welcome to greedy’s documentation!" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="install">
+<h1>Install<a class="headerlink" href="#install" title="Permalink to this headline">¶</a></h1>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Greedy is under development, instructions below do not apply at this moment.</p>
+</div>
+<p>greedy, similar to GeoPandas, can be a bit complicated to install. However,
+if you follow recommended instructions below, there should be no issue. For
+more details on issues with geospatial python stack, please refer to <a class="reference external" href="http://geopandas.org/install.html">GeoPandas
+installation instructions</a>.</p>
+<p>Greedy is a small extension of GeoPandas, which can be a bit complicated to install
+in some cases. For details on installing GeoPandas, please refer to <a class="reference external" href="http://geopandas.org/install.html">GeoPandas
+installation instructions</a>.</p>
+<div class="section" id="install-via-conda">
+<h2>Install via Conda<a class="headerlink" href="#install-via-conda" title="Permalink to this headline">¶</a></h2>
+<p>As <code class="docutils literal notranslate"><span class="pre">greedy</span></code> is dependent on <a class="reference external" href="https://geopandas.org/">geopandas</a> and other spatial packages, we recommend
+to install all dependencies via <a class="reference external" href="https://conda.io/en/latest/">conda</a> from <a class="reference external" href="https://conda-forge.org/">conda-forge</a>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="n">greedy</span>
+</pre></div>
+</div>
+<p>Conda should be able to resolve any dependency conflicts and install greedy
+together with all necessary dependencies.</p>
+<p>If you do not have <a class="reference external" href="https://conda-forge.org/">conda-forge</a> in your conda channels, you can add it using:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">config</span> <span class="o">--</span><span class="n">add</span> <span class="n">channels</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span>
+</pre></div>
+</div>
+<p>To ensure that all dependencies will be installed from <a class="reference external" href="https://conda-forge.org/">conda-forge</a>, we recommend
+using strict channel priority:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">config</span> <span class="o">--</span><span class="n">env</span> <span class="o">--</span><span class="nb">set</span> <span class="n">channel_priority</span> <span class="n">strict</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>We strongly recommend to install everything from the <em>conda-forge</em> channel.
+Mixture of conda channels or conda and pip packages can lead to import problems.</p>
+</div>
+<div class="section" id="creating-a-new-environment-for-greedy">
+<h3>Creating a new environment for greedy<a class="headerlink" href="#creating-a-new-environment-for-greedy" title="Permalink to this headline">¶</a></h3>
+<p>If you want to make sure, that everything will work as it should, you can create
+a new conda environment for greedy. Assuming we want to create a new environment
+called <code class="docutils literal notranslate"><span class="pre">greedy_env</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">greedy_env</span>
+<span class="n">conda</span> <span class="n">activate</span> <span class="n">greedy_env</span>
+<span class="n">conda</span> <span class="n">config</span> <span class="o">--</span><span class="n">env</span> <span class="o">--</span><span class="n">add</span> <span class="n">channels</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span>
+<span class="n">conda</span> <span class="n">config</span> <span class="o">--</span><span class="n">env</span> <span class="o">--</span><span class="nb">set</span> <span class="n">channel_priority</span> <span class="n">strict</span>
+<span class="n">conda</span> <span class="n">install</span> <span class="n">greedy</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="install-via-pip">
+<h2>Install via pip<a class="headerlink" href="#install-via-pip" title="Permalink to this headline">¶</a></h2>
+<p>greedy is also available on PyPI, but ensure that all dependencies are properly
+installed before installing greedy. Some C dependencies are causing problems with
+installing using pip only:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">greedy</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="install-from-the-repository">
+<h2>Install from the repository<a class="headerlink" href="#install-from-the-repository" title="Permalink to this headline">¶</a></h2>
+<p>If you want to work with the latest development version of greedy, you can do so
+by cloning <a class="reference external" href="https://github.com/martinfleis/greedy">GitHub repository</a> and
+installing greedy from local directory:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">martinfleis</span><span class="o">/</span><span class="n">greedy</span><span class="o">.</span><span class="n">git</span>
+<span class="n">cd</span> <span class="n">greedy</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="o">.</span>
+</pre></div>
+</div>
+<p>Alternatively, you can install the latest version directly from GitHub:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">git</span><span class="o">+</span><span class="n">git</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">martinfleis</span><span class="o">/</span><span class="n">greedy</span><span class="o">.</span><span class="n">git</span>
+</pre></div>
+</div>
+<p>Installing directly from repository might face the same dependency issues as
+described above regarding installing using pip. To ensure that environment is
+properly prepared and every dependency will work as intended, you can install
+them using conda before installing development version of greedy:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="n">geopandas</span> <span class="n">networkx</span> <span class="n">libpysal</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="dependencies">
+<h2>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h2>
+<p>Required dependencies:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://geopandas.org/">geopandas</a></p></li>
+<li><p><a class="reference external" href="https://libpysal.readthedocs.io">libpysal</a> (&gt;= 4.1.0)</p></li>
+<li><p><a class="reference external" href="http://networkx.github.io">networkx</a></p></li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">greedy</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Install</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#install-via-conda">Install via Conda</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#install-via-pip">Install via pip</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#install-from-the-repository">Install from the repository</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dependencies">Dependencies</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="strategies.html">Comparison of strategies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">greedy API reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Welcome to greedy’s documentation!</a></li>
+      <li>Next: <a href="guide.html" title="next chapter">Getting started</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Martin Fleischmann.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/install.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
