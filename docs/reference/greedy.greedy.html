@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>greedy.greedy &#8212; greedy 1.0.0 documentation</title>
+    <title>greedy.greedy &#8212; greedy 0.1.0 documentation</title>
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -101,7 +101,25 @@ of intersection.</p>
 </dd>
 </dl>
 <p class="rubric">Examples</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">greedy</span><span class="p">(</span><span class="n">world</span><span class="p">)</span>
+<p>Default:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">gdf</span><span class="p">[</span><span class="s1">&#39;greedy_colors&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">greedy</span><span class="p">(</span><span class="n">gdf</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Balanced by area:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">gdf</span><span class="p">[</span><span class="s1">&#39;balanced_area&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">greedy</span><span class="p">(</span><span class="n">gdf</span><span class="p">,</span> <span class="n">strategy</span><span class="o">=</span><span class="s1">&#39;balanced&#39;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                              <span class="n">balance</span><span class="o">=</span><span class="s1">&#39;area&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Using rook adjacency:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">gdf</span><span class="p">[</span><span class="s1">&#39;rook_adjacency&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">greedy</span><span class="p">(</span><span class="n">gdf</span><span class="p">,</span> <span class="n">sw</span><span class="o">=</span><span class="s1">&#39;rook&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Adding minimal distance between colors:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">gdf</span><span class="p">[</span><span class="s1">&#39;min_distance&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">greedy</span><span class="p">(</span><span class="n">gdf</span><span class="p">,</span> <span class="n">min_distance</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Using different coloring strategy:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">gdf</span><span class="p">[</span><span class="s1">&#39;smallest_last&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">greedy</span><span class="p">(</span><span class="n">gdf</span><span class="p">,</span> <span class="n">strategy</span><span class="o">=</span><span class="s1">&#39;smallest_last&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -125,13 +143,14 @@ of intersection.</p>
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Contents:</span></p>
+<p class="caption"><span class="caption-text">Documentation:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../install.html">Install</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guide.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../adjacency.html">Defining adjacency</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../strategies.html">Comparison of strategies</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api.html">greedy API reference</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/martinfleis/greedy">GitHub</a></li>
 </ul>
 
 <div class="relations">

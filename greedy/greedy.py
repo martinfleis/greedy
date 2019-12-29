@@ -266,7 +266,26 @@ def greedy(
 
     Examples
     --------
-    >>> greedy(world)
+    Default:
+
+    >>> gdf['greedy_colors'] = greedy(gdf)
+
+    Balanced by area:
+
+    >>> gdf['balanced_area'] = greedy(gdf, strategy='balanced',
+    >>>                               balance='area')
+
+    Using rook adjacency:
+
+    >>> gdf['rook_adjacency'] = greedy(gdf, sw='rook')
+
+    Adding minimal distance between colors:
+
+    >>> gdf['min_distance'] = greedy(gdf, min_distance=100)
+
+    Using different coloring strategy:
+
+    >>> gdf['smallest_last'] = greedy(gdf, strategy='smallest_last')
 
 
     Returns

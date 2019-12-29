@@ -7,7 +7,7 @@ greedy API reference
 greedy
 ------
 
-.. module:: greedy
+.. currentmodule:: greedy
 
 .. autofunction:: greedy
 

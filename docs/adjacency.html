@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>Defining adjacency &#8212; greedy 1.0.0 documentation</title>
+    <title>Defining adjacency &#8212; greedy 0.1.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -15,7 +15,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Comparison of strategies" href="strategies.html" />
-    <link rel="prev" title="Getting started" href="guide.html" />
+    <link rel="prev" title="Getting started" href="getting_started.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -34,288 +34,225 @@
             
   <div class="section" id="defining-adjacency">
 <h1>Defining adjacency<a class="headerlink" href="#defining-adjacency" title="Permalink to this headline">¶</a></h1>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import geopandas as gpd
-import pandas as pd
-import numpy as np
-from time import time
-import seaborn as sns
-import matplotlib.pyplot as plt
+<p>The key in toplogical coloring is the definition of adjacency, to
+understand which features are neighboring and could not share the same
+color. <code class="docutils literal notranslate"><span class="pre">greedy</span></code> comes with several methods of defining it. Binary
+spatial weights denoting adjacency are then stored as libpysal’s weight
+objects.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">geopandas</span> <span class="kn">as</span> <span class="nn">gpd</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">time</span>
+<span class="kn">import</span> <span class="nn">seaborn</span> <span class="kn">as</span> <span class="nn">sns</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
 
-from shapely.geometry import Point
+<span class="kn">from</span> <span class="nn">shapely.geometry</span> <span class="kn">import</span> <span class="n">Point</span>
+
+<span class="kn">from</span> <span class="nn">greedy</span> <span class="kn">import</span> <span class="n">greedy</span>
+
+<span class="n">sns</span><span class="o">.</span><span class="n">set</span><span class="p">()</span>
 </pre></div>
 </div>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from greedy import greedy
+<p>For illustration purposes, let’s generate a 10x10 mesh of squared
+polygons:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">polys</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
+        <span class="n">polys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Point</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span><span class="o">.</span><span class="n">buffer</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">cap_style</span><span class="o">=</span><span class="mi">3</span><span class="p">))</span>
+<span class="n">gdf</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="p">(</span><span class="n">geometry</span><span class="o">=</span><span class="n">polys</span><span class="p">)</span>
+<span class="n">ax</span> <span class="o">=</span> <span class="n">gdf</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">edgecolor</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_axis_off</span><span class="p">()</span>
 </pre></div>
 </div>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>sns.set()
+<img alt="_images/output_3_0.png" src="_images/output_3_0.png" />
+<div class="section" id="libpysal-adjacency">
+<h2>libpysal adjacency<a class="headerlink" href="#libpysal-adjacency" title="Permalink to this headline">¶</a></h2>
+<p>The most performant way of generating spatial weights is using libpysal
+contiguity weights. As they are based on the shared nodes or edges,
+dataset needs to be topologically correct. Neighboring polygons needs to
+share vertices and edges, otherwise their relationship will not be
+captured.</p>
+<div class="section" id="rook">
+<h3>Rook<a class="headerlink" href="#rook" title="Permalink to this headline">¶</a></h3>
+<p>There are two ways how to define contiguity weights - <code class="docutils literal notranslate"><span class="pre">rook</span></code> and
+<code class="docutils literal notranslate"><span class="pre">queen</span></code>. Rook identifies two objects as neighboring only if they share
+at least on edge - line between two shared points. Use rook if you do
+not mind two polygons touching by hteir corners having the same color:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">gdf</span><span class="p">[</span><span class="s1">&#39;rook&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">greedy</span><span class="p">(</span><span class="n">gdf</span><span class="p">,</span> <span class="n">sw</span><span class="o">=</span><span class="s1">&#39;rook&#39;</span><span class="p">,</span> <span class="n">min_colors</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">ax</span> <span class="o">=</span> <span class="n">gdf</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="s1">&#39;rook&#39;</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">categorical</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;Set3&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_axis_off</span><span class="p">()</span>
 </pre></div>
 </div>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>polys = []
-for x in range(10):
-    for y in range(10):
-        polys.append(Point(x, y).buffer(0.5, cap_style=3))
-gdf = gpd.GeoDataFrame(geometry=polys)
+<img alt="_images/output_5_0.png" src="_images/output_5_0.png" />
+</div>
+<div class="section" id="queen">
+<h3>Queen<a class="headerlink" href="#queen" title="Permalink to this headline">¶</a></h3>
+<p>The default option in <code class="docutils literal notranslate"><span class="pre">greedy</span></code> is <code class="docutils literal notranslate"><span class="pre">queen</span></code> adjacency. That identifies
+two objects as neighboring if they share at least one point. It ensures
+that even poygons sharing only one corner will not share a color:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">gdf</span><span class="p">[</span><span class="s1">&#39;queen&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">greedy</span><span class="p">(</span><span class="n">gdf</span><span class="p">,</span> <span class="n">sw</span><span class="o">=</span><span class="s1">&#39;queen&#39;</span><span class="p">,</span> <span class="n">min_colors</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">ax</span> <span class="o">=</span> <span class="n">gdf</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="s1">&#39;queen&#39;</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">categorical</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;Set3&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_axis_off</span><span class="p">()</span>
 </pre></div>
 </div>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>ax = gdf.plot(edgecolor=&#39;w&#39;)
-ax.set_axis_off()
+<img alt="_images/output_7_01.png" src="_images/output_7_01.png" />
+</div>
+</div>
+<div class="section" id="intersection-based-adjacency">
+<h2>Intersection-based adjacency<a class="headerlink" href="#intersection-based-adjacency" title="Permalink to this headline">¶</a></h2>
+<p>As noted above, if the topology of the dataset is not ideal, libpysal
+might not identify two visually neighboring features as neighbors.
+<code class="docutils literal notranslate"><span class="pre">greedy</span></code> can use intersection-based algorithm using GEOS intersection
+to define if two features intersects in any way. They do not have to
+share any points. Naturally, such an approach is significantly slower
+(details below), but it can provide correct adjacency when libpysal
+fails.</p>
+<p>To make <code class="docutils literal notranslate"><span class="pre">greedy</span></code> to use this algorithm, one just needs to define
+<code class="docutils literal notranslate"><span class="pre">min_distance</span></code>. If it is set to 0, it behaves similarly to <code class="docutils literal notranslate"><span class="pre">queen</span></code>
+contiguity, just capturing all intersections:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">gdf</span><span class="p">[</span><span class="s1">&#39;geos&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">greedy</span><span class="p">(</span><span class="n">gdf</span><span class="p">,</span> <span class="n">min_distance</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">min_colors</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">ax</span> <span class="o">=</span> <span class="n">gdf</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="s1">&#39;geos&#39;</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">categorical</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;Set3&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_axis_off</span><span class="p">()</span>
 </pre></div>
 </div>
-<img alt="_images/output_4_0.png" src="_images/output_4_0.png" />
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>libpysal based
+<img alt="_images/output_9_01.png" src="_images/output_9_01.png" />
+<p><code class="docutils literal notranslate"><span class="pre">min_distance</span></code> also sets the minimal distance between colors. To do
+that, all features within such a distance are identified as neighbors,
+hence no two features wihtin set distance can share the same color:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">gdf</span><span class="p">[</span><span class="s1">&#39;dist1&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">greedy</span><span class="p">(</span><span class="n">gdf</span><span class="p">,</span> <span class="n">min_distance</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">min_colors</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">ax</span> <span class="o">=</span> <span class="n">gdf</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="s1">&#39;dist1&#39;</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">categorical</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;Set3&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_axis_off</span><span class="p">()</span>
 </pre></div>
 </div>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>gdf[&#39;rook&#39;] = greedy(gdf, sw=&#39;rook&#39;, min_colors=2)
-ax = gdf.plot(&#39;rook&#39;, edgecolor=&#39;w&#39;, categorical=True, cmap=&#39;Set3&#39;)
-ax.set_axis_off()
-</pre></div>
+<img alt="_images/output_11_0.png" src="_images/output_11_0.png" />
 </div>
-<img alt="_images/output_6_0.png" src="_images/output_6_0.png" />
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>gdf[&#39;queen&#39;] = greedy(gdf, sw=&#39;queen&#39;, min_colors=2)
-ax = gdf.plot(&#39;queen&#39;, edgecolor=&#39;w&#39;, categorical=True, cmap=&#39;Set3&#39;)
-ax.set_axis_off()
-</pre></div>
+<div class="section" id="reusing-spatial-weights">
+<h2>Reusing spatial weights<a class="headerlink" href="#reusing-spatial-weights" title="Permalink to this headline">¶</a></h2>
+<p>Passing <code class="docutils literal notranslate"><span class="pre">libpysal.weights.W</span></code> object to <code class="docutils literal notranslate"><span class="pre">sw</span></code>, will skip generating
+spatial weights and use the passed object instead. That will improve the
+performance if one intends to repeate the coloring multiple times. In
+that case, weights should be denoted using GeodataFrame’s index.</p>
 </div>
-<img alt="_images/output_7_0.png" src="_images/output_7_0.png" />
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>intersection based
-</pre></div>
-</div>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>gdf[&#39;geos&#39;] = greedy(gdf, min_distance=0, min_colors=2)
-ax = gdf.plot(&#39;geos&#39;, edgecolor=&#39;w&#39;, categorical=True, cmap=&#39;Set3&#39;)
-ax.set_axis_off()
-</pre></div>
-</div>
-<img alt="_images/output_9_0.png" src="_images/output_9_0.png" />
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>gdf[&#39;dist1&#39;] = greedy(gdf, min_distance=1, min_colors=2)
-ax = gdf.plot(&#39;dist1&#39;, edgecolor=&#39;w&#39;, categorical=True, cmap=&#39;Set3&#39;)
-ax.set_axis_off()
-</pre></div>
-</div>
-<img alt="_images/output_10_0.png" src="_images/output_10_0.png" />
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>times = pd.DataFrame(index=[&#39;rook&#39;, &#39;queen&#39;, &#39;geos&#39;, &#39;dist1&#39;])
-for number in range(10, 110, 10):
-    print(number)
-    polys = []
-    for x in range(number):
-        for y in range(number):
-            polys.append(Point(x, y).buffer(0.5, cap_style=3))
-    gdf = gpd.GeoDataFrame(geometry=polys)
-    timer = []
-    for run in range(5):
-        s = time()
-        colors = greedy(gdf, sw=&#39;rook&#39;)
-        e = time() - s
-        timer.append(e)
-    times.loc[&#39;rook&#39;, number] = np.mean(timer)
-    print(&#39;rook: &#39;, np.mean(timer), &#39;s; &#39;, np.max(colors) + 1, &#39;colors&#39;)
-    timer = []
-    for run in range(5):
-        s = time()
-        colors = greedy(gdf, sw=&#39;queen&#39;)
-        e = time() - s
-        timer.append(e)
-    times.loc[&#39;queen&#39;, number] = np.mean(timer)
-    print(&#39;queen: &#39;, np.mean(timer), &#39;s; &#39;, np.max(colors) + 1, &#39;colors&#39;)
-    timer = []
-    for run in range(5):
-        s = time()
-        colors = greedy(gdf, min_distance=0)
-        e = time() - s
-        timer.append(e)
-    times.loc[&#39;geos&#39;, number] = np.mean(timer)
-    print(&#39;geos: &#39;, np.mean(timer), &#39;s; &#39;, np.max(colors) + 1, &#39;colors&#39;)
-    timer = []
-    for run in range(5):
-        s = time()
-        colors = greedy(gdf, min_distance=1)
-        e = time() - s
-        timer.append(e)
-    times.loc[&#39;dist1&#39;, number] = np.mean(timer)
-    print(&#39;dist1: &#39;, np.mean(timer), &#39;s; &#39;, np.max(colors) + 1, &#39;colors&#39;)
+<div class="section" id="performance">
+<h2>Performance<a class="headerlink" href="#performance" title="Permalink to this headline">¶</a></h2>
+<p>The difference in performance of libpysal and GEOS-based method is
+large, so it is recommended to use libpysal if possible. Details of
+comparison between all methods are below:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">times</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;rook&#39;</span><span class="p">,</span> <span class="s1">&#39;queen&#39;</span><span class="p">,</span> <span class="s1">&#39;geos&#39;</span><span class="p">,</span> <span class="s1">&#39;dist1&#39;</span><span class="p">])</span>
+<span class="k">for</span> <span class="n">number</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">110</span><span class="p">,</span> <span class="mi">10</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">number</span><span class="p">)</span>
+    <span class="n">polys</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">number</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">number</span><span class="p">):</span>
+            <span class="n">polys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Point</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span><span class="o">.</span><span class="n">buffer</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">cap_style</span><span class="o">=</span><span class="mi">3</span><span class="p">))</span>
+    <span class="n">gdf</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="p">(</span><span class="n">geometry</span><span class="o">=</span><span class="n">polys</span><span class="p">)</span>
+    <span class="n">timer</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">run</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+        <span class="n">colors</span> <span class="o">=</span> <span class="n">greedy</span><span class="p">(</span><span class="n">gdf</span><span class="p">,</span> <span class="n">sw</span><span class="o">=</span><span class="s1">&#39;rook&#39;</span><span class="p">,</span> <span class="n">min_colors</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">e</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">s</span>
+        <span class="n">timer</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+    <span class="n">times</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s1">&#39;rook&#39;</span><span class="p">,</span> <span class="n">number</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">timer</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;rook: &#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">timer</span><span class="p">),</span> <span class="s1">&#39;s; &#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">colors</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;colors&#39;</span><span class="p">)</span>
+    <span class="n">timer</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">run</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+        <span class="n">colors</span> <span class="o">=</span> <span class="n">greedy</span><span class="p">(</span><span class="n">gdf</span><span class="p">,</span> <span class="n">sw</span><span class="o">=</span><span class="s1">&#39;queen&#39;</span><span class="p">,</span> <span class="n">min_colors</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">e</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">s</span>
+        <span class="n">timer</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+    <span class="n">times</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s1">&#39;queen&#39;</span><span class="p">,</span> <span class="n">number</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">timer</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;queen: &#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">timer</span><span class="p">),</span> <span class="s1">&#39;s; &#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">colors</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;colors&#39;</span><span class="p">)</span>
+    <span class="n">timer</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">run</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+        <span class="n">colors</span> <span class="o">=</span> <span class="n">greedy</span><span class="p">(</span><span class="n">gdf</span><span class="p">,</span> <span class="n">min_distance</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">min_colors</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">e</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">s</span>
+        <span class="n">timer</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+    <span class="n">times</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s1">&#39;geos&#39;</span><span class="p">,</span> <span class="n">number</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">timer</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;geos: &#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">timer</span><span class="p">),</span> <span class="s1">&#39;s; &#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">colors</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;colors&#39;</span><span class="p">)</span>
+    <span class="n">timer</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">run</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+        <span class="n">colors</span> <span class="o">=</span> <span class="n">greedy</span><span class="p">(</span><span class="n">gdf</span><span class="p">,</span> <span class="n">min_distance</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">min_colors</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">e</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">s</span>
+        <span class="n">timer</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+    <span class="n">times</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s1">&#39;dist1&#39;</span><span class="p">,</span> <span class="n">number</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">timer</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;dist1: &#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">timer</span><span class="p">),</span> <span class="s1">&#39;s; &#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">colors</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;colors&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">10</span>
-<span class="n">rook</span><span class="p">:</span>  <span class="mf">0.01029210090637207</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">4</span> <span class="n">colors</span>
-<span class="n">queen</span><span class="p">:</span>  <span class="mf">0.006267690658569336</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">4</span> <span class="n">colors</span>
-<span class="n">geos</span><span class="p">:</span>  <span class="mf">0.15672893524169923</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">4</span> <span class="n">colors</span>
-<span class="n">dist1</span><span class="p">:</span>  <span class="mf">0.21950168609619142</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">10</span> <span class="n">colors</span>
+<span class="n">rook</span><span class="p">:</span>  <span class="mf">0.008332633972167968</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">2</span> <span class="n">colors</span>
+<span class="n">queen</span><span class="p">:</span>  <span class="mf">0.0067865848541259766</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">4</span> <span class="n">colors</span>
+<span class="n">geos</span><span class="p">:</span>  <span class="mf">0.18540759086608888</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">4</span> <span class="n">colors</span>
+<span class="n">dist1</span><span class="p">:</span>  <span class="mf">0.3216702938079834</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">10</span> <span class="n">colors</span>
 <span class="mi">20</span>
-<span class="n">rook</span><span class="p">:</span>  <span class="mf">0.01932358741760254</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">4</span> <span class="n">colors</span>
-<span class="n">queen</span><span class="p">:</span>  <span class="mf">0.019013690948486327</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">4</span> <span class="n">colors</span>
-<span class="n">geos</span><span class="p">:</span>  <span class="mf">0.5995094776153564</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">4</span> <span class="n">colors</span>
-<span class="n">dist1</span><span class="p">:</span>  <span class="mf">0.9240117073059082</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">10</span> <span class="n">colors</span>
+<span class="n">rook</span><span class="p">:</span>  <span class="mf">0.023499011993408203</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">2</span> <span class="n">colors</span>
+<span class="n">queen</span><span class="p">:</span>  <span class="mf">0.02506265640258789</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">4</span> <span class="n">colors</span>
+<span class="n">geos</span><span class="p">:</span>  <span class="mf">0.7820498943328857</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">4</span> <span class="n">colors</span>
+<span class="n">dist1</span><span class="p">:</span>  <span class="mf">1.1883579730987548</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">10</span> <span class="n">colors</span>
 <span class="mi">30</span>
-<span class="n">rook</span><span class="p">:</span>  <span class="mf">0.04496006965637207</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">4</span> <span class="n">colors</span>
-<span class="n">queen</span><span class="p">:</span>  <span class="mf">0.04180002212524414</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">4</span> <span class="n">colors</span>
-<span class="n">geos</span><span class="p">:</span>  <span class="mf">1.3673813819885254</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">4</span> <span class="n">colors</span>
-<span class="n">dist1</span><span class="p">:</span>  <span class="mf">2.1132378578186035</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">10</span> <span class="n">colors</span>
+<span class="n">rook</span><span class="p">:</span>  <span class="mf">0.09070181846618652</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">2</span> <span class="n">colors</span>
+<span class="n">queen</span><span class="p">:</span>  <span class="mf">0.05646052360534668</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">4</span> <span class="n">colors</span>
+<span class="n">geos</span><span class="p">:</span>  <span class="mf">1.4737992763519288</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">4</span> <span class="n">colors</span>
+<span class="n">dist1</span><span class="p">:</span>  <span class="mf">2.313761281967163</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">10</span> <span class="n">colors</span>
 <span class="mi">40</span>
-<span class="n">rook</span><span class="p">:</span>  <span class="mf">0.08215422630310058</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">4</span> <span class="n">colors</span>
-<span class="n">queen</span><span class="p">:</span>  <span class="mf">0.08703317642211914</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">4</span> <span class="n">colors</span>
-<span class="n">geos</span><span class="p">:</span>  <span class="mf">2.4122870922088624</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">4</span> <span class="n">colors</span>
-<span class="n">dist1</span><span class="p">:</span>  <span class="mf">3.9358083724975588</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">10</span> <span class="n">colors</span>
+<span class="n">rook</span><span class="p">:</span>  <span class="mf">0.1293130874633789</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">2</span> <span class="n">colors</span>
+<span class="n">queen</span><span class="p">:</span>  <span class="mf">0.08214569091796875</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">4</span> <span class="n">colors</span>
+<span class="n">geos</span><span class="p">:</span>  <span class="mf">2.6077350616455077</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">4</span> <span class="n">colors</span>
+<span class="n">dist1</span><span class="p">:</span>  <span class="mf">4.236755275726319</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">10</span> <span class="n">colors</span>
 <span class="mi">50</span>
-<span class="n">rook</span><span class="p">:</span>  <span class="mf">0.13613815307617189</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">4</span> <span class="n">colors</span>
-<span class="n">queen</span><span class="p">:</span>  <span class="mf">0.1286477565765381</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">4</span> <span class="n">colors</span>
-<span class="n">geos</span><span class="p">:</span>  <span class="mf">3.7892502784729003</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">4</span> <span class="n">colors</span>
-<span class="n">dist1</span><span class="p">:</span>  <span class="mf">6.030300855636597</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">10</span> <span class="n">colors</span>
+<span class="n">rook</span><span class="p">:</span>  <span class="mf">0.1469170093536377</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">2</span> <span class="n">colors</span>
+<span class="n">queen</span><span class="p">:</span>  <span class="mf">0.16109180450439453</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">4</span> <span class="n">colors</span>
+<span class="n">geos</span><span class="p">:</span>  <span class="mf">4.08953275680542</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">4</span> <span class="n">colors</span>
+<span class="n">dist1</span><span class="p">:</span>  <span class="mf">6.589194393157959</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">10</span> <span class="n">colors</span>
 <span class="mi">60</span>
-<span class="n">rook</span><span class="p">:</span>  <span class="mf">0.21495418548583983</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">4</span> <span class="n">colors</span>
-<span class="n">queen</span><span class="p">:</span>  <span class="mf">0.20560770034790038</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">4</span> <span class="n">colors</span>
-<span class="n">geos</span><span class="p">:</span>  <span class="mf">5.745699644088745</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">4</span> <span class="n">colors</span>
-<span class="n">dist1</span><span class="p">:</span>  <span class="mf">8.623000431060792</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">10</span> <span class="n">colors</span>
+<span class="n">rook</span><span class="p">:</span>  <span class="mf">0.25732903480529784</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">2</span> <span class="n">colors</span>
+<span class="n">queen</span><span class="p">:</span>  <span class="mf">0.25914812088012695</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">4</span> <span class="n">colors</span>
+<span class="n">geos</span><span class="p">:</span>  <span class="mf">7.026346206665039</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">4</span> <span class="n">colors</span>
+<span class="n">dist1</span><span class="p">:</span>  <span class="mf">10.011457777023315</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">10</span> <span class="n">colors</span>
 <span class="mi">70</span>
-<span class="n">rook</span><span class="p">:</span>  <span class="mf">0.3028740882873535</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">4</span> <span class="n">colors</span>
-<span class="n">queen</span><span class="p">:</span>  <span class="mf">0.2708714485168457</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">4</span> <span class="n">colors</span>
-<span class="n">geos</span><span class="p">:</span>  <span class="mf">7.566797542572021</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">4</span> <span class="n">colors</span>
-<span class="n">dist1</span><span class="p">:</span>  <span class="mf">11.740409564971923</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">10</span> <span class="n">colors</span>
+<span class="n">rook</span><span class="p">:</span>  <span class="mf">0.29179821014404295</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">2</span> <span class="n">colors</span>
+<span class="n">queen</span><span class="p">:</span>  <span class="mf">0.3061429500579834</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">4</span> <span class="n">colors</span>
+<span class="n">geos</span><span class="p">:</span>  <span class="mf">8.105659198760986</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">4</span> <span class="n">colors</span>
+<span class="n">dist1</span><span class="p">:</span>  <span class="mf">12.690713024139404</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">10</span> <span class="n">colors</span>
 <span class="mi">80</span>
-<span class="n">rook</span><span class="p">:</span>  <span class="mf">0.3894804954528809</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">4</span> <span class="n">colors</span>
-<span class="n">queen</span><span class="p">:</span>  <span class="mf">0.3736574649810791</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">4</span> <span class="n">colors</span>
-<span class="n">geos</span><span class="p">:</span>  <span class="mf">10.271010398864746</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">4</span> <span class="n">colors</span>
-<span class="n">dist1</span><span class="p">:</span>  <span class="mf">15.380718183517455</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">10</span> <span class="n">colors</span>
+<span class="n">rook</span><span class="p">:</span>  <span class="mf">0.40609278678894045</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">2</span> <span class="n">colors</span>
+<span class="n">queen</span><span class="p">:</span>  <span class="mf">0.37023115158081055</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">4</span> <span class="n">colors</span>
+<span class="n">geos</span><span class="p">:</span>  <span class="mf">10.018446493148804</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">4</span> <span class="n">colors</span>
+<span class="n">dist1</span><span class="p">:</span>  <span class="mf">16.996356391906737</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">10</span> <span class="n">colors</span>
 <span class="mi">90</span>
-<span class="n">rook</span><span class="p">:</span>  <span class="mf">0.47423458099365234</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">4</span> <span class="n">colors</span>
-<span class="n">queen</span><span class="p">:</span>  <span class="mf">0.4377274990081787</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">4</span> <span class="n">colors</span>
-<span class="n">geos</span><span class="p">:</span>  <span class="mf">12.464200687408447</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">4</span> <span class="n">colors</span>
-<span class="n">dist1</span><span class="p">:</span>  <span class="mf">19.965694665908813</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">10</span> <span class="n">colors</span>
+<span class="n">rook</span><span class="p">:</span>  <span class="mf">0.5523331642150879</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">2</span> <span class="n">colors</span>
+<span class="n">queen</span><span class="p">:</span>  <span class="mf">0.5231795310974121</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">4</span> <span class="n">colors</span>
+<span class="n">geos</span><span class="p">:</span>  <span class="mf">13.362245750427245</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">4</span> <span class="n">colors</span>
+<span class="n">dist1</span><span class="p">:</span>  <span class="mf">19.79914846420288</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">10</span> <span class="n">colors</span>
 <span class="mi">100</span>
-<span class="n">rook</span><span class="p">:</span>  <span class="mf">0.5873185157775879</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">4</span> <span class="n">colors</span>
-<span class="n">queen</span><span class="p">:</span>  <span class="mf">0.5612773895263672</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">4</span> <span class="n">colors</span>
-<span class="n">geos</span><span class="p">:</span>  <span class="mf">15.281956052780151</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">4</span> <span class="n">colors</span>
-<span class="n">dist1</span><span class="p">:</span>  <span class="mf">24.670071363449097</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">10</span> <span class="n">colors</span>
+<span class="n">rook</span><span class="p">:</span>  <span class="mf">0.632891035079956</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">2</span> <span class="n">colors</span>
+<span class="n">queen</span><span class="p">:</span>  <span class="mf">0.6089587688446045</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">4</span> <span class="n">colors</span>
+<span class="n">geos</span><span class="p">:</span>  <span class="mf">15.45732364654541</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">4</span> <span class="n">colors</span>
+<span class="n">dist1</span><span class="p">:</span>  <span class="mf">24.436386251449584</span> <span class="n">s</span><span class="p">;</span>  <span class="mi">10</span> <span class="n">colors</span>
 </pre></div>
 </div>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>times
+<p>Comparison of time needed to generate greedy coloring using each of the
+methods above shows the big difference between GEOS and libpysal:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ax</span> <span class="o">=</span> <span class="n">times</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;time (s)&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;# of polygons&#39;</span><span class="p">)</span>
+<span class="n">locs</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">(</span><span class="n">locs</span><span class="p">,</span> <span class="p">(</span><span class="n">times</span><span class="o">.</span><span class="n">columns</span> <span class="o">**</span> <span class="mi">2</span><span class="p">),</span> <span class="n">rotation</span><span class="o">=</span><span class="s1">&#39;vertical&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>10</th>
-      <th>20</th>
-      <th>30</th>
-      <th>40</th>
-      <th>50</th>
-      <th>60</th>
-      <th>70</th>
-      <th>80</th>
-      <th>90</th>
-      <th>100</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>rook</th>
-      <td>0.010292</td>
-      <td>0.019324</td>
-      <td>0.044960</td>
-      <td>0.082154</td>
-      <td>0.136138</td>
-      <td>0.214954</td>
-      <td>0.302874</td>
-      <td>0.389480</td>
-      <td>0.474235</td>
-      <td>0.587319</td>
-    </tr>
-    <tr>
-      <th>queen</th>
-      <td>0.006268</td>
-      <td>0.019014</td>
-      <td>0.041800</td>
-      <td>0.087033</td>
-      <td>0.128648</td>
-      <td>0.205608</td>
-      <td>0.270871</td>
-      <td>0.373657</td>
-      <td>0.437727</td>
-      <td>0.561277</td>
-    </tr>
-    <tr>
-      <th>geos</th>
-      <td>0.156729</td>
-      <td>0.599509</td>
-      <td>1.367381</td>
-      <td>2.412287</td>
-      <td>3.789250</td>
-      <td>5.745700</td>
-      <td>7.566798</td>
-      <td>10.271010</td>
-      <td>12.464201</td>
-      <td>15.281956</td>
-    </tr>
-    <tr>
-      <th>dist1</th>
-      <td>0.219502</td>
-      <td>0.924012</td>
-      <td>2.113238</td>
-      <td>3.935808</td>
-      <td>6.030301</td>
-      <td>8.623000</td>
-      <td>11.740410</td>
-      <td>15.380718</td>
-      <td>19.965695</td>
-      <td>24.670071</td>
-    </tr>
-  </tbody>
-</table>
-</div><div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>ax = times.T.plot()
-ax.set_ylabel(&#39;time (s)&#39;)
-ax.set_xlabel(&#39;# of polygons&#39;)
-locs, labels = plt.xticks()
-plt.xticks(locs, (times.columns ** 2), rotation=&#39;vertical&#39;)
+<img alt="_images/output_16_1.png" src="_images/output_16_1.png" />
+<p>Plotting without the GEOS methods, the difference between <code class="docutils literal notranslate"><span class="pre">queen</span></code> and
+<code class="docutils literal notranslate"><span class="pre">rook</span></code> is minimal:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ax</span> <span class="o">=</span> <span class="n">times</span><span class="o">.</span><span class="n">loc</span><span class="p">[[</span><span class="s1">&#39;rook&#39;</span><span class="p">,</span> <span class="s1">&#39;queen&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;time (s)&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;# of polygons&#39;</span><span class="p">)</span>
+<span class="n">locs</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">(</span><span class="n">locs</span><span class="p">,</span> <span class="p">(</span><span class="n">times</span><span class="o">.</span><span class="n">columns</span> <span class="o">**</span> <span class="mi">2</span><span class="p">),</span> <span class="n">rotation</span><span class="o">=</span><span class="s1">&#39;vertical&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">([</span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axis</span><span class="o">.</span><span class="n">XTick</span> <span class="n">at</span> <span class="mh">0x1201bfdf0</span><span class="o">&gt;</span><span class="p">,</span>
-  <span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axis</span><span class="o">.</span><span class="n">XTick</span> <span class="n">at</span> <span class="mh">0x11fece8e0</span><span class="o">&gt;</span><span class="p">,</span>
-  <span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axis</span><span class="o">.</span><span class="n">XTick</span> <span class="n">at</span> <span class="mh">0x121743c40</span><span class="o">&gt;</span><span class="p">,</span>
-  <span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axis</span><span class="o">.</span><span class="n">XTick</span> <span class="n">at</span> <span class="mh">0x11fe33610</span><span class="o">&gt;</span><span class="p">,</span>
-  <span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axis</span><span class="o">.</span><span class="n">XTick</span> <span class="n">at</span> <span class="mh">0x11ffb10d0</span><span class="o">&gt;</span><span class="p">,</span>
-  <span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axis</span><span class="o">.</span><span class="n">XTick</span> <span class="n">at</span> <span class="mh">0x1200f07c0</span><span class="o">&gt;</span><span class="p">,</span>
-  <span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axis</span><span class="o">.</span><span class="n">XTick</span> <span class="n">at</span> <span class="mh">0x11f65a550</span><span class="o">&gt;</span><span class="p">,</span>
-  <span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axis</span><span class="o">.</span><span class="n">XTick</span> <span class="n">at</span> <span class="mh">0x11f6520d0</span><span class="o">&gt;</span><span class="p">,</span>
-  <span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axis</span><span class="o">.</span><span class="n">XTick</span> <span class="n">at</span> <span class="mh">0x11f652c10</span><span class="o">&gt;</span><span class="p">,</span>
-  <span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axis</span><span class="o">.</span><span class="n">XTick</span> <span class="n">at</span> <span class="mh">0x11f61b6d0</span><span class="o">&gt;</span><span class="p">],</span>
- <span class="o">&lt;</span><span class="n">a</span> <span class="nb">list</span> <span class="n">of</span> <span class="mi">10</span> <span class="n">Text</span> <span class="n">xticklabel</span> <span class="n">objects</span><span class="o">&gt;</span><span class="p">)</span>
-</pre></div>
+<img alt="_images/output_18_1.png" src="_images/output_18_1.png" />
 </div>
-<img alt="_images/output_13_1.png" src="_images/output_13_1.png" />
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>ax = times.loc[[&#39;rook&#39;, &#39;queen&#39;]].T.plot()
-ax.set_ylabel(&#39;time (s)&#39;)
-ax.set_xlabel(&#39;# of polygons&#39;)
-locs, labels = plt.xticks()
-plt.xticks(locs, (times.columns ** 2), rotation=&#39;vertical&#39;)
-</pre></div>
-</div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">([</span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axis</span><span class="o">.</span><span class="n">XTick</span> <span class="n">at</span> <span class="mh">0x11ff36a30</span><span class="o">&gt;</span><span class="p">,</span>
-  <span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axis</span><span class="o">.</span><span class="n">XTick</span> <span class="n">at</span> <span class="mh">0x11ff36af0</span><span class="o">&gt;</span><span class="p">,</span>
-  <span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axis</span><span class="o">.</span><span class="n">XTick</span> <span class="n">at</span> <span class="mh">0x11f5b9a90</span><span class="o">&gt;</span><span class="p">,</span>
-  <span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axis</span><span class="o">.</span><span class="n">XTick</span> <span class="n">at</span> <span class="mh">0x11f5e9370</span><span class="o">&gt;</span><span class="p">,</span>
-  <span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axis</span><span class="o">.</span><span class="n">XTick</span> <span class="n">at</span> <span class="mh">0x11f5e9d90</span><span class="o">&gt;</span><span class="p">,</span>
-  <span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axis</span><span class="o">.</span><span class="n">XTick</span> <span class="n">at</span> <span class="mh">0x120053790</span><span class="o">&gt;</span><span class="p">,</span>
-  <span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axis</span><span class="o">.</span><span class="n">XTick</span> <span class="n">at</span> <span class="mh">0x12005b250</span><span class="o">&gt;</span><span class="p">,</span>
-  <span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axis</span><span class="o">.</span><span class="n">XTick</span> <span class="n">at</span> <span class="mh">0x12005bdf0</span><span class="o">&gt;</span><span class="p">,</span>
-  <span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axis</span><span class="o">.</span><span class="n">XTick</span> <span class="n">at</span> <span class="mh">0x12002a970</span><span class="o">&gt;</span><span class="p">,</span>
-  <span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axis</span><span class="o">.</span><span class="n">XTick</span> <span class="n">at</span> <span class="mh">0x12005b730</span><span class="o">&gt;</span><span class="p">],</span>
- <span class="o">&lt;</span><span class="n">a</span> <span class="nb">list</span> <span class="n">of</span> <span class="mi">10</span> <span class="n">Text</span> <span class="n">xticklabel</span> <span class="n">objects</span><span class="o">&gt;</span><span class="p">)</span>
-</pre></div>
-</div>
-<img alt="_images/output_14_1.png" src="_images/output_14_1.png" />
 </div>
 
 
@@ -335,20 +272,27 @@ plt.xticks(locs, (times.columns ** 2), rotation=&#39;vertical&#39;)
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Contents:</span></p>
+<p class="caption"><span class="caption-text">Documentation:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="install.html">Install</a></li>
-<li class="toctree-l1"><a class="reference internal" href="guide.html">Getting started</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Defining adjacency</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting started</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Defining adjacency</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#libpysal-adjacency">libpysal adjacency</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#intersection-based-adjacency">Intersection-based adjacency</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#reusing-spatial-weights">Reusing spatial weights</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#performance">Performance</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="strategies.html">Comparison of strategies</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">greedy API reference</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/martinfleis/greedy">GitHub</a></li>
 </ul>
 
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="guide.html" title="previous chapter">Getting started</a></li>
+      <li>Previous: <a href="getting_started.html" title="previous chapter">Getting started</a></li>
       <li>Next: <a href="strategies.html" title="next chapter">Comparison of strategies</a></li>
   </ul></li>
 </ul>

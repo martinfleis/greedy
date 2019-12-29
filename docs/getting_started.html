@@ -1,0 +1,219 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Getting started &#8212; greedy 0.1.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Defining adjacency" href="adjacency.html" />
+    <link rel="prev" title="Install" href="install.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="getting-started">
+<h1>Getting started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
+<p>Greedy or topological coloring (or sequential coloring) is a
+cartographic method of assigning colors to polygons (or other
+geoemtries, <code class="docutils literal notranslate"><span class="pre">greedy</span></code> supports all geometry types) in such a way, that
+no two adjacent polygons share the same color.</p>
+<p><code class="docutils literal notranslate"><span class="pre">greedy</span></code> is a small package providing such a functionality on top of
+GeoPandas GeoDataFrames. <code class="docutils literal notranslate"><span class="pre">greedy.greedy()</span></code> is all we need.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">geopandas</span> <span class="kn">as</span> <span class="nn">gpd</span>
+
+<span class="kn">from</span> <span class="nn">greedy</span> <span class="kn">import</span> <span class="n">greedy</span>
+</pre></div>
+</div>
+<p>Few of <code class="docutils literal notranslate"><span class="pre">greedy</span></code>‘s methods of coloring require either measuring of
+areas or distances. To obtain proper values, our GeoDataFrame needs to
+be in projected CRS. Let’s use Africa and reproject it to ’ESRI:102022’:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">world</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span><span class="n">gpd</span><span class="o">.</span><span class="n">datasets</span><span class="o">.</span><span class="n">get_path</span><span class="p">(</span><span class="s1">&#39;naturalearth_lowres&#39;</span><span class="p">))</span>
+<span class="n">africa</span> <span class="o">=</span> <span class="n">world</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">world</span><span class="o">.</span><span class="n">continent</span> <span class="o">==</span> <span class="s1">&#39;Africa&#39;</span><span class="p">]</span>
+<span class="n">africa</span> <span class="o">=</span> <span class="n">africa</span><span class="o">.</span><span class="n">to_crs</span><span class="p">(</span><span class="s1">&#39;ESRI:102022&#39;</span><span class="p">)</span>
+<span class="n">ax</span> <span class="o">=</span> <span class="n">africa</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">16</span><span class="p">))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_axis_off</span><span class="p">()</span>
+</pre></div>
+</div>
+<img alt="_images/output_3_1.png" src="_images/output_3_1.png" />
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>The default usage of <code class="docutils literal notranslate"><span class="pre">greedy</span></code> is extremely simple. Greedy returns
+Series with color codes, so we can assign it directly as a new column of
+our GeoDataFrame:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">africa</span><span class="p">[</span><span class="s1">&#39;greedy_default&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">greedy</span><span class="p">(</span><span class="n">africa</span><span class="p">)</span>
+<span class="n">africa</span><span class="p">[</span><span class="s1">&#39;greedy_default&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">1</span>     <span class="mi">1</span>
+<span class="mi">2</span>     <span class="mi">0</span>
+<span class="mi">11</span>    <span class="mi">0</span>
+<span class="mi">12</span>    <span class="mi">1</span>
+<span class="mi">13</span>    <span class="mi">4</span>
+<span class="n">Name</span><span class="p">:</span> <span class="n">greedy_default</span><span class="p">,</span> <span class="n">dtype</span><span class="p">:</span> <span class="n">int64</span>
+</pre></div>
+</div>
+<p>Using resulting color codes as plotting categories gives us following
+plot:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ax</span> <span class="o">=</span> <span class="n">africa</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="s1">&#39;greedy_default&#39;</span><span class="p">,</span> <span class="n">categorical</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">16</span><span class="p">),</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;Set3&#39;</span><span class="p">,</span> <span class="n">legend</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_axis_off</span><span class="p">()</span>
+</pre></div>
+</div>
+<img alt="_images/output_7_02.png" src="_images/output_7_02.png" />
+</div>
+<div class="section" id="strategies">
+<h2>Strategies<a class="headerlink" href="#strategies" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="balanced">
+<h3>Balanced<a class="headerlink" href="#balanced" title="Permalink to this headline">¶</a></h3>
+<p>Greedy offers several strategies of coloring. The default strategy is
+<code class="docutils literal notranslate"><span class="pre">balanced</span></code> based on <code class="docutils literal notranslate"><span class="pre">count</span></code> attempting to balance the number of
+features per each color. Other balanced modes are <code class="docutils literal notranslate"><span class="pre">area</span></code> (balance the
+area covered by each color), <code class="docutils literal notranslate"><span class="pre">distance</span></code> and <code class="docutils literal notranslate"><span class="pre">centroid</span></code> (both
+attemtps to balance the distance between colors). Each of them attempts
+to balance the color assignemnt according to different conditions and
+hence can result in a differnet number of colors.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">africa</span><span class="p">[</span><span class="s1">&#39;greedy_area&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">greedy</span><span class="p">(</span><span class="n">africa</span><span class="p">,</span> <span class="n">strategy</span><span class="o">=</span><span class="s1">&#39;balanced&#39;</span><span class="p">,</span> <span class="n">balance</span><span class="o">=</span><span class="s1">&#39;area&#39;</span><span class="p">)</span>
+<span class="n">ax</span> <span class="o">=</span> <span class="n">africa</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="s1">&#39;greedy_area&#39;</span><span class="p">,</span> <span class="n">categorical</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">16</span><span class="p">),</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;Set3&#39;</span><span class="p">,</span> <span class="n">legend</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_axis_off</span><span class="p">()</span>
+</pre></div>
+</div>
+<img alt="_images/output_9_02.png" src="_images/output_9_02.png" />
+<p>Different modes of balancing within <code class="docutils literal notranslate"><span class="pre">balanced</span></code> strategy can be set
+using <code class="docutils literal notranslate"><span class="pre">balance</span></code> keyword.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">africa</span><span class="p">[</span><span class="s1">&#39;greedy_distance&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">greedy</span><span class="p">(</span><span class="n">africa</span><span class="p">,</span> <span class="n">strategy</span><span class="o">=</span><span class="s1">&#39;balanced&#39;</span><span class="p">,</span> <span class="n">balance</span><span class="o">=</span><span class="s1">&#39;distance&#39;</span><span class="p">)</span>
+<span class="n">ax</span> <span class="o">=</span> <span class="n">africa</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="s1">&#39;greedy_distance&#39;</span><span class="p">,</span> <span class="n">categorical</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">16</span><span class="p">),</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;Set3&#39;</span><span class="p">,</span> <span class="n">legend</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_axis_off</span><span class="p">()</span>
+</pre></div>
+</div>
+<img alt="_images/output_11_01.png" src="_images/output_11_01.png" />
+</div>
+</div>
+<div class="section" id="networkx-strategies">
+<h2>NetworkX strategies<a class="headerlink" href="#networkx-strategies" title="Permalink to this headline">¶</a></h2>
+<p>On top of four modes of balanced coloring strategy, <code class="docutils literal notranslate"><span class="pre">greedy</span></code> offers
+all <code class="docutils literal notranslate"><span class="pre">networkx.greedy_coloring()</span></code> strategies, like <code class="docutils literal notranslate"><span class="pre">largest_first</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">africa</span><span class="p">[</span><span class="s1">&#39;greedy_largest_first&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">greedy</span><span class="p">(</span><span class="n">africa</span><span class="p">,</span> <span class="n">strategy</span><span class="o">=</span><span class="s1">&#39;largest_first&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ax</span> <span class="o">=</span> <span class="n">africa</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="s1">&#39;greedy_largest_first&#39;</span><span class="p">,</span> <span class="n">categorical</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">16</span><span class="p">),</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;Set3&#39;</span><span class="p">,</span> <span class="n">legend</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_axis_off</span><span class="p">()</span>
+</pre></div>
+</div>
+<img alt="_images/output_14_0.png" src="_images/output_14_0.png" />
+<p>Another strategy provided by networkX is <code class="docutils literal notranslate"><span class="pre">smallest_last</span></code>. All
+strategies provide different results. Check Comparison of strategies for
+details.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">africa</span><span class="p">[</span><span class="s1">&#39;greedy_s&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">greedy</span><span class="p">(</span><span class="n">africa</span><span class="p">,</span> <span class="n">strategy</span><span class="o">=</span><span class="s1">&#39;smallest_last&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ax</span> <span class="o">=</span> <span class="n">africa</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="s1">&#39;greedy_s&#39;</span><span class="p">,</span> <span class="n">categorical</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">16</span><span class="p">),</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;Set3&#39;</span><span class="p">,</span> <span class="n">legend</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_axis_off</span><span class="p">()</span>
+</pre></div>
+</div>
+<img alt="_images/output_17_0.png" src="_images/output_17_0.png" />
+<p>Greedy is variable in a way how to define adjacency and which coloring
+strategy to use. All options are described in this documentation
+together with comparison of their performance.</p>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">greedy</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Documentation:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Install</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Getting started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#default">Default</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#strategies">Strategies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#networkx-strategies">NetworkX strategies</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="adjacency.html">Defining adjacency</a></li>
+<li class="toctree-l1"><a class="reference internal" href="strategies.html">Comparison of strategies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">greedy API reference</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/martinfleis/greedy">GitHub</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="install.html" title="previous chapter">Install</a></li>
+      <li>Next: <a href="adjacency.html" title="next chapter">Defining adjacency</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Martin Fleischmann.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/getting_started.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

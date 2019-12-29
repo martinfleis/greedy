@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>greedy’s documentation &#8212; greedy 1.0.0 documentation</title>
+    <title>greedy’s documentation &#8212; greedy 0.1.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -33,8 +33,24 @@
             
   <div class="section" id="greedy-s-documentation">
 <h1>greedy’s documentation<a class="headerlink" href="#greedy-s-documentation" title="Permalink to this headline">¶</a></h1>
+<a class="reference external image-reference" href="https://travis-ci.org/martinfleis/greedy"><img alt="https://travis-ci.org/martinfleis/greedy.svg?branch=master" src="https://travis-ci.org/martinfleis/greedy.svg?branch=master" /></a>
+<a class="reference external image-reference" href="https://codecov.io/gh/martinfleis/greedy"><img alt="https://codecov.io/gh/martinfleis/greedy/branch/master/graph/badge.svg" src="https://codecov.io/gh/martinfleis/greedy/branch/master/graph/badge.svg" /></a>
+<p><code class="docutils literal notranslate"><span class="pre">greedy</span></code> a Python package which brings topological (greedy) coloring to GeoPandas.
+Several coloring strategies all accessible using one line of code:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">gdf</span><span class="p">[</span><span class="s1">&#39;colors&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">greedy</span><span class="p">(</span><span class="n">gdf</span><span class="p">)</span>
+</pre></div>
+</div>
+<img alt="_images/output_7_02.png" src="_images/output_7_02.png" />
+<p>Install greedy using <code class="docutils literal notranslate"><span class="pre">conda</span></code> from  <code class="docutils literal notranslate"><span class="pre">conda-forge</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="n">greedy</span>
+</pre></div>
+</div>
+<p>Or from PyPI using <code class="docutils literal notranslate"><span class="pre">pip</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">greedy</span>
+</pre></div>
+</div>
 <div class="toctree-wrapper compound">
-<p class="caption"><span class="caption-text">Contents:</span></p>
+<p class="caption"><span class="caption-text">Documentation:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Install</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="install.html#install-via-conda">Install via Conda</a></li>
@@ -43,14 +59,31 @@
 <li class="toctree-l2"><a class="reference internal" href="install.html#dependencies">Dependencies</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="guide.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="adjacency.html">Defining adjacency</a></li>
-<li class="toctree-l1"><a class="reference internal" href="strategies.html">Comparison of strategies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="getting_started.html#default">Default</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting_started.html#strategies">Strategies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting_started.html#networkx-strategies">NetworkX strategies</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="adjacency.html">Defining adjacency</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="adjacency.html#libpysal-adjacency">libpysal adjacency</a></li>
+<li class="toctree-l2"><a class="reference internal" href="adjacency.html#intersection-based-adjacency">Intersection-based adjacency</a></li>
+<li class="toctree-l2"><a class="reference internal" href="adjacency.html#reusing-spatial-weights">Reusing spatial weights</a></li>
+<li class="toctree-l2"><a class="reference internal" href="adjacency.html#performance">Performance</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="strategies.html">Comparison of strategies</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="strategies.html#different-strategies">Different strategies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="strategies.html#performance">Performance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="strategies.html#resulting-maps">Resulting maps</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">greedy API reference</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="api.html#module-greedy">greedy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#greedy">greedy</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api.html#helper-functions">Helper functions</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/martinfleis/greedy">GitHub</a></li>
 </ul>
 </div>
 </div>
@@ -80,13 +113,14 @@
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Contents:</span></p>
+<p class="caption"><span class="caption-text">Documentation:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Install</a></li>
-<li class="toctree-l1"><a class="reference internal" href="guide.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="adjacency.html">Defining adjacency</a></li>
 <li class="toctree-l1"><a class="reference internal" href="strategies.html">Comparison of strategies</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">greedy API reference</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/martinfleis/greedy">GitHub</a></li>
 </ul>
 
 <div class="relations">
