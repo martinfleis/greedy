@@ -120,13 +120,12 @@ def _balanced(features, sw, balance="count", min_colors=4):
                     if c in available_colors
                 }
 
+                distances = features.loc[other_features.keys()].distance(this_feature)
                 # loop through these, and calculate the minimum distance from this feature to the nearest
                 # feature with each assigned color
                 for other_feature_id, c in other_features.items():
 
-                    other_geometry = features.loc[other_feature_id].geometry
-
-                    distance = this_feature.distance(other_geometry)
+                    distance = distances.loc[other_feature_id]
                     if distance < min_distances[c]:
                         min_distances[c] = distance
 
