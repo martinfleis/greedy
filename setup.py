@@ -5,10 +5,10 @@ with open("README.md", "r", encoding="utf8") as fh:
 
 setuptools.setup(
     name="greedy",
-    version="0.1.0",
+    version="0.1.1",
     author="Martin Fleischmann",
     author_email="martin@martinfleischmann.net",
-    description="A small example package",
+    description="Greedy (topological) coloring for GeoPandas",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/martinfleis/greedy",
