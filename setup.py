@@ -18,5 +18,6 @@ setuptools.setup(
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
         "Operating System :: OS Independent",
     ],
-    python_requires='>=3.6',
+    python_requires=">=3.6",
+    install_requires=["geopandas", "networkx>=2.3", "libpysal>=4.1.0"],
 )

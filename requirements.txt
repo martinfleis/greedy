@@ -1,0 +1,3 @@
+geopandas
+networkx>=2.3
+libpysal>=4.1.0

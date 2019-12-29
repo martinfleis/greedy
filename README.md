@@ -5,7 +5,7 @@
 Greedy (topological) coloring for GeoPandas
 
 `greedy` is a Python package which brings topological (greedy) coloring to [GeoPandas](http://geopandas.org).
-It offers several coloring strategies, all accessible using one line of code::
+It offers several coloring strategies, all accessible using one line of code:
 
 ```py
 gdf['colors'] = greedy(gdf)
