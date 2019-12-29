@@ -5,7 +5,7 @@ Install
 
     Greedy is under development, instructions below do not apply at this moment.
 
-greedy, similar to GeoPandas, can be a bit complicated to install. However,
+CHANGE greedy, similar to GeoPandas, can be a bit complicated to install. However,
 if you follow recommended instructions below, there should be no issue. For
 more details on issues with geospatial python stack, please refer to `GeoPandas
 installation instructions <http://geopandas.org/install.html>`__.
