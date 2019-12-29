@@ -11,7 +11,7 @@ It offers several coloring strategies, all accessible using one line of code::
 gdf['colors'] = greedy(gdf)
 ```
 
-![alt text](https://raw.githubusercontent.com/martinfleis/greedy/images/getting_started/output_7_0.png)
+![alt text](https://github.com/martinfleis/greedy/blob/master/docs/_images/output_7_02.png?raw=true)
 
 ## Documentation
 Documentation of `greedy` is available at [martinfleis.github.io/greedy](https://martinfleis.github.io/greedy/).
