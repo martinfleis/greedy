@@ -19,9 +19,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import operator
 
-import libpysal
 import networkx as nx
 import pandas as pd
+from libpysal.weights import Queen, Rook, W
 
 STRATEGIES = nx.algorithms.coloring.greedy_coloring.STRATEGIES.keys()
 
@@ -181,7 +181,7 @@ def _geos_sw(features, tolerance=0, silence_warnings=False):
 
         neighbors[ix] = list(precise_matches.index)
 
-    return libpysal.weights.W(neighbors, silence_warnings=silence_warnings)
+    return W(neighbors, silence_warnings=silence_warnings)
 
 
 def greedy(
@@ -296,13 +296,13 @@ def greedy(
     if min_distance is not None:
         sw = _geos_sw(gdf, tolerance=min_distance, silence_warnings=silence_warnings)
 
-    if not isinstance(sw, libpysal.weights.W):
+    if not isinstance(sw, W):
         if sw == "queen":
-            sw = libpysal.weights.Queen.from_dataframe(
+            sw = Queen.from_dataframe(
                 gdf, ids=gdf.index.to_list(), silence_warnings=silence_warnings
             )
         elif sw == "rook":
-            sw = libpysal.weights.Rook.from_dataframe(
+            sw = Rook.from_dataframe(
                 gdf, ids=gdf.index.to_list(), silence_warnings=silence_warnings
             )
 
