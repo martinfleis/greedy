@@ -1,7 +1,7 @@
 """
 greedy - Greedy (topological) coloring for GeoPandas
 
-Copyright (C) 2020  Martin Fleischmann, Nyall Dawson
+Copyright (C) 2019  Martin Fleischmann, 2017 Nyall Dawson
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
