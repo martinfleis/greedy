@@ -89,13 +89,13 @@ Dependencies
 Required dependencies:
 
 - `geopandas`_
-- `libpysal`_ (>= 4.1.0)
+- `libpysal`_
 - `networkx`_
 
 
 .. _geopandas: https://geopandas.org/
 
-.. _libpysal: https://libpysal.readthedocs.io
+.. _libpysal: https://pysal.org/libpysal
 
 .. _networkx: http://networkx.github.io
 
