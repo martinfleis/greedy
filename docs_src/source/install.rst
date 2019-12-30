@@ -1,10 +1,6 @@
 Install
 =======
 
-.. note::
-
-    Greedy is under development, instructions below do not apply at this moment.
-
 Installing ``greedy`` is straightforward using both ``pip`` and ``conda``.
 
 Greedy is a small extension of GeoPandas. That can be a bit complicated to install

@@ -1,10 +1,6 @@
 Install
 =======
 
-.. note::
-
-    Greedy is under development, instructions below do not apply at this moment.
-
 Installing ``greedy`` is straightforward using both ``pip`` and ``conda``.
 
 Greedy is a small extension of GeoPandas. That can be a bit complicated to install
@@ -89,13 +85,13 @@ Dependencies
 Required dependencies:
 
 - `geopandas`_
-- `libpysal`_ (>= 4.1.0)
+- `libpysal`_
 - `networkx`_
 
 
 .. _geopandas: https://geopandas.org/
 
-.. _libpysal: https://libpysal.readthedocs.io
+.. _libpysal: https://pysal.org/libpysal
 
 .. _networkx: http://networkx.github.io
 
