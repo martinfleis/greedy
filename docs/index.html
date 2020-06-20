@@ -35,6 +35,16 @@
 <h1>greedy’s documentation<a class="headerlink" href="#greedy-s-documentation" title="Permalink to this headline">¶</a></h1>
 <a class="reference external image-reference" href="https://travis-ci.org/martinfleis/greedy"><img alt="https://travis-ci.org/martinfleis/greedy.svg?branch=master" src="https://travis-ci.org/martinfleis/greedy.svg?branch=master" /></a>
 <a class="reference external image-reference" href="https://codecov.io/gh/martinfleis/greedy"><img alt="https://codecov.io/gh/martinfleis/greedy/branch/master/graph/badge.svg" src="https://codecov.io/gh/martinfleis/greedy/branch/master/graph/badge.svg" /></a>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p><strong>Greedy</strong> has been included in <strong>mapclassify</strong> and is no longer supported and developed as an independent package.</p>
+<p>Use <code class="docutils literal notranslate"><span class="pre">greedy</span></code> module in <a class="reference external" href="https://pysal.org/mapclassify">mapclassify</a> instead.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mapclassify</span> <span class="kn">import</span> <span class="n">greedy</span>
+
+<span class="n">gdf</span><span class="p">[</span><span class="s1">&#39;colors&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">greedy</span><span class="p">(</span><span class="n">gdf</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
 <p><code class="docutils literal notranslate"><span class="pre">greedy</span></code> a Python package which brings topological (greedy) coloring to GeoPandas.
 Several coloring strategies all accessible using one line of code:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">gdf</span><span class="p">[</span><span class="s1">&#39;colors&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">greedy</span><span class="p">(</span><span class="n">gdf</span><span class="p">)</span>
