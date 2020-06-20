@@ -1,8 +1,17 @@
 # greedy
 [![Build Status](https://travis-ci.org/martinfleis/greedy.svg?branch=master)](https://travis-ci.org/martinfleis/greedy) [![codecov](https://codecov.io/gh/martinfleis/greedy/branch/master/graph/badge.svg)](https://codecov.io/gh/martinfleis/greedy)
 
-**`greedy` has been included in [`mapclassify`](https://github.com/pysal/mapclassify) and is no longer supported and developed as an independet package.**
-To use `greedy` install `mapclassify` and use `from mapclassify import greedy`.
+## Deprecated 
+
+**`greedy` has been included in [`mapclassify`](https://github.com/pysal/mapclassify) and is no longer supported and developed as an independent package.**
+
+Use `greedy` module in `mapclassify` instead.
+
+```py
+from mapclassify import greedy
+
+gdf['colors'] = greedy(gdf)
+```
 
 ## Introduction
 Greedy (topological) coloring for GeoPandas
